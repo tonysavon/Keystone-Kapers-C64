@@ -84,9 +84,8 @@
 
 .const timer_value = reservep0(3) //2 digits, plus sub 128th of time unit. One time unit both on the A8 and vcs version is exactly 128 frames
 								  //this is big-endian, unlike the other multi-byte values
-.print timer_value
-
-.const lives = reservep0(3)
+								  
+.const lives = reservep0(1)
 
 .pc = $0801 
 :BasicUpstart($0820)
@@ -469,9 +468,7 @@ irq_02:
 {
 				sta savea + 1
 				stx savex + 1
-				//sty savey + 1
 							
-				
 				lda #$0a
 				sta $d022
 				
@@ -523,7 +520,6 @@ irq_02:
 				lsr $d019
 		savea:	lda #0
 		savex:	ldx #0
-//		savey:	ldy #0
 				
 				rti
 				
@@ -586,9 +582,7 @@ level0mc10:
 level0mc20:		lda #$0c
 				sta $d023
 
-				
-									
-				//:setirq(irq_03, 51 + 83)
+
 				:setirq(irq_04, 51 + 89)
 				lsr $d019
 				pla
@@ -648,7 +642,7 @@ irq_05:
 				sta $d023	
 					
 				:setirq(irq_06, 51 + 101)
-//				:setirq(irq_07, 51 + 121)
+
 				lsr $d019
 				pla
 				rti
@@ -890,7 +884,7 @@ panel_irq_0:
 							
 				adc #222
 				sta $d009
-				lda #80 + 24 + 3 * 20 + 10 //each room is 20 pixel
+				lda #80 + 24 + 3 * 20 + 10 //each room is 20 pixels
 				sta $d008
 				lda #$09
 				sta $d027 + 4
@@ -1226,7 +1220,7 @@ set_room:
 				
 		src0:	lax gamemap,y
 				sta $4400 + 120 + 170 * 0,y
-				beq src1			//41% of the chars in a map are zero, and for thòse you don't need to set char color.
+				beq src1			//41% of the chars in a map are zero, and for those we don't need to set char color.
 									//so here on average we use 0.41 * 3 + 0.59 * 11 = 7.7 cycles instead of 9 cycles
 				lda colortable,x
 				sta $d800 + 120 + 170 * 0,y
@@ -1373,7 +1367,7 @@ collision_detection:
 				jmp death
 		
 		!non_deadly_enemy:
-				//freeze the cop and subtract 9 seconds
+				//freezes the cop and subtract 9 seconds
 				jsr freeze
 				jmp !done+		
 				 
@@ -1390,15 +1384,15 @@ collision_detection:
 				lda #1
 				sta item_collected,x
 				
-				//add 50 points
+				//adds 50 points
 				jsr add_score_50
 				
 				:sfx(SFX_CASH)
 				jmp !done+
 				
 		!radio:		
-				//we have to test that collision didn't happen with the rays. 
-				//We must approximate what we do is that if the cop is jumping, and if he is above a certain height, we test collision with the button sprite, not the feet
+				//we must test that collision didn't happen with the radio rays. 
+				//We use a (forgiving) approximation: if the cop is jumping, and if he is above a certain height, we test collision with the button sprite, not the feet
 				ldx cop.jumpclock
 				lda cop.jumppath,x
 				cmp #7
@@ -1535,7 +1529,7 @@ level_complete_sequence:
 		 		ora timer_value + 1
 		 		beq !done+
 		 		
-		 		//play a ding here, we use all three voices
+		 		//play a ding here, we use all three voices, so don't call :sfx()
 		 		//:sfx(SFX_BONUS)
 		 		ldx #SFX_BONUS
 		 		jsr play_no_music
@@ -1645,7 +1639,7 @@ opt:
 				cpx #19
 				bne !-
 			
-				lda #170 //three sec
+				lda #170 //little more than three sec
 				sta p0tmp
 			!:	jsr panelvsync
 	
@@ -1795,7 +1789,7 @@ freeze:
 
 
 
-//room: 		room0	room1	room2	room3	room4	room5 	room6	room7
+//room:			room0	room1	room2	room3	room4	room5 	room6	room7
 
 l0mc10:	.byte 	$01,	$08,	$08,	$03,	$08,	$08,	$08,	$ff
 l0mc20: .byte	$ff,	$09,	$0c,	$09,	$09,	$09,	$0c,	$ff
@@ -1831,13 +1825,6 @@ hud_font:
 .for (var c = 0; c < 20; c++)
 	.for (var b = 0; b < 8; b++)
 		.byte digitpic.getMulticolorByte(c,b) 
-/*		
-.label SCORE_CHARS = (* - hud_font) / 8
-.const scorepic = LoadPicture("..\assets\score.png", List().add($123456,$0000ff,$000000,$ffffff))
-.for (var c = 0; c < 10; c++)
-	.for (var b = 0; b < 8; b++)
-		.byte scorepic.getMulticolorByte(c,b) 
-*/				
 
 .label HEAD_CHARS = (* - hud_font) / 8
 .const headpic = LoadPicture("..\assets\head.png", List().add(0,$0000ff,$00ff00,$ff0000))
@@ -1932,7 +1919,6 @@ radar_man_sprite:
 logo_shadow_sprites:
 .import binary "..\sprites\logo_shadow.bin"
 
-//.pc = $7200 "sprites part 2"
 getready_sprites:
 .import binary "..\sprites\getready.bin"
 gameover_sprites:
@@ -1943,14 +1929,13 @@ hero_stunned_sprites:
 
 .pc = $3400 + 40 * 17 "credits"
 
-//.text "                                        "
 .text "             Adaptation by              "
 .text "                                        "
 .text "         A. Savona : Code               "
 .text "            S. Day : Graphics           "
 .text "          S. Cross : Music, Sfx         "
 .text "                                        "
-//.text " Copyright 1983, 1984  Activision, Inc. " 
+
 .text "Joystick up / down : Selects level -    "
 .text "       Fire button : Starts game        "
 
@@ -1961,7 +1946,7 @@ hero_stunned_sprites:
 .fill 16 * 320, scm.get(i)
 
 
-//we put the rooms vertically. there's a lot of duplicate information, but the packer will take it away
+//we stack the rooms vertically in memory. there's a lot of duplicate information, but the packer will take it away
 .pc = $e400 "gamemap"
 .var maplist = List()
 
@@ -1973,9 +1958,7 @@ gamemap:
 		.for (var x = 0; x < 40; x++)
 		{
 			.var chr = mapf.uget(40 * room + x + 320 * y)
-//			.var col = colf.uget(chr)
 			.eval maplist.add(chr)
-//			.eval collist.add(col)
 		}
 
 .fill maplist.size(), maplist.get(i)
