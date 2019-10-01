@@ -1,0 +1,6 @@
+0: title screen
+1: levelstart + ingame
+2: levelstart withouth ingame
+3: life lost
+4: game over
+5: muted, for sfx only.
